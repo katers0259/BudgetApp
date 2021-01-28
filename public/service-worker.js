@@ -4,32 +4,23 @@ const FILES_TO_CACHE = [
     "/",
   "/index.html",
   "/manifest.webmanifest",
-  "/public/style.css",
-  "/models/transactions.js",
-  "/public/icons/icon-192x192.png",
-  "/public/icons/icon-512x512.png",
-  "/public/db.js"
-  
+  "/style.css",
+  "/transactions.js",
+  "/icons/icon-192x192.png",
+  "/icons/icon-512x512.png",
+  "/db.js",
+  'https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css',
 ];
 
 
 self.addEventListener("install", function (evt) {
-    // pre cache image data
-    evt.waitUntil(
-      caches.open(DATA_CACHE_NAME).then((cache) => cache.add("/api/images"))
-    );
-      
-    // pre cache all static assets
     evt.waitUntil(
       caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES_TO_CACHE))
     );
-  
-    // tell the browser to activate this service worker immediately once it
-    // has finished installing
     self.skipWaiting();
   });
   
-  // activate
+ 
   self.addEventListener("activate", function(evt) {
     evt.waitUntil(
       caches.keys().then(keyList => {
@@ -47,14 +38,13 @@ self.addEventListener("install", function (evt) {
     self.clients.claim();
   });
   
-  // fetch
-  self.addEventListener("fetch", function(evt) {
+    self.addEventListener("fetch", function(evt) {
     if (evt.request.url.includes("/api/")) {
       evt.respondWith(
         caches.open(DATA_CACHE_NAME).then(cache => {
           return fetch(evt.request)
             .then(response => {
-              // If the response was good, clone it and store it in the cache.
+              
               if (response.status === 200) {
                 cache.put(evt.request.url, response.clone());
               }
@@ -62,7 +52,7 @@ self.addEventListener("install", function (evt) {
               return response;
             })
             .catch(err => {
-              // Network request failed, try to get it from the cache.
+              
               return cache.match(evt.request);
             });
         }).catch(err => console.log(err))
